@@ -1,6 +1,6 @@
 # Building Medical Imaging Tools with Deep Learning
 #### CPH 100A Project 2
-#### Due Date: 7PM PST Nov 13, 2025
+#### Due Date: 7PM PST Oct 16, 2025
 
 ## Introduction
 
@@ -12,11 +12,11 @@ Building on the machine learning foundations from Project 1, this project focuse
 - Complete implementation of neural networks in `classification_models.py` and `segmentation_models.py`
 - Working training loops in `classification_train.py` and `segmentation_train.py`
 - **Performance targets**: >90% classification accuracy, >95% segmentation IoU
-- **Due**: Individual code submissions by 7PM PST Nov 13, 2025
+- **Due**: Individual code submissions by 7PM PST Oct 16, 2025
 
 ### Team Submissions (one per team, teams of 5):
 - Analysis of your PathMNIST classification and segmentation experiments
-- **Due**: Team reports by 7PM PST Nov 13, 2025
+- **Due**: Team reports by 7PM PST Oct 16, 2025
 
 ### Use of AI in this project
 - **Individual Implementation**: For your learning, we encourage you NOT to use AI to implement core CNN operations, training loops, or U-Net skip connections. Understanding these fundamentals is crucial for deep learning mastery.  You  project is meant to help you develop your deep learning intuitions, and modern LLMs can rob you of that opportunity. 
