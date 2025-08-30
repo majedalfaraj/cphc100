@@ -57,11 +57,8 @@ python check_installation.py
 - If conda is unavailable: use system Python 3.10+ and run `pip install -r requirements.txt`
 - Still having issues: ask LLMs, teammates, or come to office hours
 
-### Test your VSCode integration on DataHub
 
-The PLCO datasets, including helpful data dictionaries and readmes, are available at:
-**DataHub path**: `/scratch/project1/plco/lung_prsn.csv`
-**Data dictionary**: `/scratch/project1/plco/dictionary_lung_prsn-aug21-091521.pdf`
+The PLCO dataset files, including a helpful data dictionaries and the raw data csv, are available on bCourses in the "project1_data" folder in "Files".
 
 ### Code Structure Overview
 - `main.py`: Main training loop (modify feature_config here)
