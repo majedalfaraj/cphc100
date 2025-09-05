@@ -63,8 +63,27 @@ def get_experiment_list(config: dict) -> list[dict]:
     '''
     jobs = [{}]
 
+    def combination_tree(config):
+        if len(config) == 0:
+            return [{}]
+        
+        config_copy = config.copy()
+        key = list(config_copy.keys())[0]
+        values = config_copy.pop(key)
+        old_combos = combination_tree(config_copy)
+        new_combos = []
+        for v in values:
+            for d in old_combos:
+                d_copy = d.copy()
+                d_copy[key] = v
+                new_combos.append(d_copy)
+        return new_combos
+
+    jobs = combination_tree(config)
+
+
     # TODO: Go through the tree of possible jobs and enumerate into a list of jobs
-    raise NotImplementedError("Not implemented yet")
+    # raise NotImplementedError("Not implemented yet")
 
     return jobs
 

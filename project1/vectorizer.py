@@ -16,10 +16,10 @@ class Vectorizer:
         """
         :return: function to map numerical x to a zero mean, unit std dev normalized score.
         """
+        values = np.array(values).astype(float)
+        mean, std = np.mean(values), np.std(values)
 
-        mean, std = None, None
-
-        raise NotImplementedError("Numerical vectorizer not implemented yet")
+        # raise NotImplementedError("Numerical vectorizer not implemented yet")
 
         def vectorizer(x):
             """
@@ -28,7 +28,10 @@ class Vectorizer:
 
             Hint: this fn knows mean and std from the outer scope
             """
-            NotImplementedError("Not implemented")
+            # NotImplementedError("Not implemented")
+
+            # Standard space: z-score = (x - mu)/sigma
+            return (float(x) - mean)/std
 
         return vectorizer
 
@@ -39,7 +42,12 @@ class Vectorizer:
         """
         :return: function to map categorical x to one-hot feature vector
         """
-        raise NotImplementedError("Categorical vectorizer not implemented yet")
+        # raise NotImplementedError("Categorical vectorizer not implemented yet")
+
+        def vectoriser(x):
+            pass
+        
+        return vectoriser
 
     def fit(self, X):
         """
@@ -48,9 +56,24 @@ class Vectorizer:
 
             This implementation will depend on how you design your feature config.
         """
+        # raise NotImplementedError("Not implemented yet")
+        features = {}
+        vectorisers = {
+            "numerical": self.get_numerical_vectorizer,
+            # "categorical": self.get_categorical_vectorizer,
+        }
+        for datapoint in X:
+            for feature, value in datapoint.items():
+                if feature not in features:   
+                    features[feature] = []
+                features[feature].append(value)
+        
+        for feature in features:
+            for config in self.feature_config:
+                if feature in self.feature_config[config]:
+                    self.feature_transforms[feature] = vectorisers[config](features[feature])
+                    break
 
-        raise NotImplementedError("Not implemented yet")
-        self.feature_transforms = { "transform_name": None}
         self.is_fit = True
 
 
@@ -65,6 +88,16 @@ class Vectorizer:
             raise Exception("Vectorizer not intialized! You must first call fit with a training set" )
 
         transformed_data = []
-        raise NotImplementedError("Not implemented yet")
+        for datapoint in X:
+            # transformed_datapoint = {}
+            row = []
+            for feature, value in datapoint.items():
+                # transformed_datapoint[feature] = self.feature_transforms[feature](value)
+                for config in self.feature_config:
+                    if feature in self.feature_config[config]:
+                        row.append(self.feature_transforms[feature](value))
+                        break    
+            #transformed_data.append(transformed_datapoint)
+            transformed_data.append(row)
 
         return np.array(transformed_data)

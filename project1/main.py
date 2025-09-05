@@ -13,7 +13,7 @@ import os
 def add_main_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--plco_data_path",
-        default="/scratch/project1/plco/lung_prsn.csv",
+        default="./plco/lung_prsn.csv",
         help="Location of PLCO csv",
     )
 
@@ -86,7 +86,7 @@ def main(args: argparse.Namespace) -> dict:
     #     "categorical": ["sex", "race7"],     # Features for one-hot encoding
     #     "ordinal": ["educat"]                # Features for integer encoding
     # }
-    feature_config = None
+    feature_config = {"numerical" : ["age"]}
 
     print("Initializing vectorizer and extracting features")
     # TODO: Implement a vectorizer to convert the questionnaire features into a feature vector
@@ -140,6 +140,7 @@ def main(args: argparse.Namespace) -> dict:
 
     # Compute AUC on test set and print for submission. Note, you should not use test set to tune your model.
     # Uncomment these lines only when you're ready for final evaluation:
+
     # pred_test_Y = model.predict_proba(test_X)
     # test_auc = roc_auc_score(test_Y, pred_test_Y)
     # print(f"Test AUC: {test_auc:.4f}")
