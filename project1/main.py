@@ -86,7 +86,10 @@ def main(args: argparse.Namespace) -> dict:
     #     "categorical": ["sex", "race7"],     # Features for one-hot encoding
     #     "ordinal": ["educat"]                # Features for integer encoding
     # }
-    feature_config = {"numerical" : ["age"]}
+    feature_config = {
+        "numerical" : ["age", "cig_years", "pack_years"],
+
+    }
 
     print("Initializing vectorizer and extracting features")
     # TODO: Implement a vectorizer to convert the questionnaire features into a feature vector
@@ -135,8 +138,6 @@ def main(args: argparse.Namespace) -> dict:
 
     # Print AUC on validation set. Note, you always want to use validation set to tune your model.
     print(f"Validation AUC: {results['val_auc']}")
-
-    
 
     # Compute AUC on test set and print for submission. Note, you should not use test set to tune your model.
     # Uncomment these lines only when you're ready for final evaluation:

@@ -81,10 +81,6 @@ def get_experiment_list(config: dict) -> list[dict]:
 
     jobs = combination_tree(config)
 
-
-    # TODO: Go through the tree of possible jobs and enumerate into a list of jobs
-    # raise NotImplementedError("Not implemented yet")
-
     return jobs
 
 def worker(args: argparse.Namespace, job_queue: multiprocessing.Queue, done_queue: multiprocessing.Queue):
@@ -126,13 +122,34 @@ def launch_experiment(args: argparse.Namespace, experiment_config: dict) -> dict
         os.makedirs(args.log_dir)
 
     # TODO: Launch the experiment
+    exp_name = "_".join([f"{k}-{v}" for k, v in experiment_config.items()])
+    exp_dir = os.path.join(args.log_dir, exp_name)
+    os.makedirs(exp_dir, exist_ok=True)
 
-    # TODO: Parse the results from the experiment and return them as a dict
+    results_path = os.path.join(exp_dir, "results.json")
+    command = [
+        sys.executable,
+        "main.py",
+        f"--results_path={results_path}",  # Add results_path explicitly
+        f"--plco_data_path={args.plco_data_path}"  # Same data path for all runs
+    ]
 
-    raise NotImplementedError("Not implemented yet")
+    for k, v in experiment_config.items():
+        command.append(f"--{k}={v}")
 
-    results = {}
-    return results
+    try:
+        # Run the experiment
+        subprocess.run(command, check=True)
+
+        # Read results.json and return a single dict with all params + metrics
+        with open(results_path, "r") as f:
+            metrics = json.load(f)
+
+        return {**experiment_config, **metrics}
+    
+    except subprocess.CalledProcessError as e:
+        print(f"[ERROR] Experiment {exp_name} failed: {e}")
+        return {**experiment_config, "train_auc": None, "val_auc": None}
 
 
 def parse_args() -> argparse.Namespace:
