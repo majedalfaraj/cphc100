@@ -59,8 +59,11 @@ class Vectorizer:
         """
         :return: function to map categorical x to one-hot feature vector
         """
+        values = np.unique(np.array(values)).astype(str)
         def vectoriser(x):
-            return (np.array(values) == x).astype(int)
+            if Vectorizer.is_missing(x):
+                return np.zeros(len(values))
+            return (values == x).astype(int)
         
         return vectoriser
     
@@ -71,7 +74,7 @@ class Vectorizer:
         seen = set()
         values = [x for x in values if x not in seen and not seen.add(x)]
         def vectoriser(x):
-            if Vectorizer.is_missing(x):
+            if Vectorizer.is_missing(x) or x not in values:
                 return 0
             return values.index(x)
 
@@ -141,4 +144,4 @@ class Vectorizer:
     
 
     def is_missing(val):
-        return val == "" or val is None or (isinstance(val, float) and np.isnan(val))
+        return val == "" or val is None or (isinstance(val, float) and np.isnan(val)) or (isinstance(val, str) and val.strip() in [".", ".F", ".M", ".A", ".N", ".NA", "NA", "N/A", ""]) 

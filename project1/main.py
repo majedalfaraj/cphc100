@@ -27,6 +27,7 @@ def add_main_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
         "--regularization_lambda",
         default=0,
+        # default=10,
         type=float,
         help="Weight to use for L2 regularization",
     )
@@ -81,14 +82,19 @@ def main(args: argparse.Namespace) -> dict:
     # TODO: Define feature configuration for your model
     # Example configurations:
     # For age-only model: feature_config = {"numerical": ["age"]}
-    # For full model: feature_config = {
+    # For full model: 
+    # feature_config = {
     #     "numerical": ["age", "pack_years"],  # Features to normalize
     #     "categorical": ["sex", "race7"],     # Features for one-hot encoding
     #     "ordinal": ["educat"]                # Features for integer encoding
     # }
+    # feature_config = {
+    #     "numerical" : ["age", "cig_years", "pack_years", "ssmokea_f", "lung_fh_cnt", "lung_num_heslide_imgs", "weight_f"],
+    #     # "categorical": ["sex"]
+    #     # "ordinal": ["educat"]
+    # }
     feature_config = {
-        "numerical" : ["age", "cig_years", "pack_years"],
-
+        "numerical" : ["age"]
     }
 
     print("Initializing vectorizer and extracting features")

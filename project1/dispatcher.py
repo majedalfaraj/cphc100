@@ -9,6 +9,12 @@ import sys
 
 def add_main_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
+        "--plco_data_path",
+        default="./plco/lung_prsn.csv",
+        help="Location of PLCO csv",
+    )
+    
+    parser.add_argument(
         "--config_path",
         type=str,
         default="grid_search.json",
