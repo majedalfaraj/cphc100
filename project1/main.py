@@ -1,7 +1,7 @@
 
 import argparse
 import json
-from csv import DictReader
+from csv import DictReader, DictWriter
 from vectorizer import Vectorizer
 from logistic_regression import LogisticRegression
 import json
@@ -84,16 +84,16 @@ def main(args: argparse.Namespace) -> dict:
     # Example configurations:
     # For age-only model: feature_config = {"numerical": ["age"]}
     # For full model: 
-    feature_config = {
-        "numerical": ["age", "pack_years"],  # Features to normalize
-        "categorical": ["sex", "race7"],     # Features for one-hot encoding
-        "ordinal": ["educat"]                # Features for integer encoding
-    }
     # feature_config = {
-    #     "numerical" : ["age", "cig_years", "pack_years", "ssmokea_f", "lung_fh_cnt", "weight_f"],
-    #     "categorical": ["sex", "race7"],
-    #     "ordinal": ["educat"],
+    #     "numerical": ["age", "pack_years"],  # Features to normalize
+    #     "categorical": ["sex", "race7"],     # Features for one-hot encoding
+    #     "ordinal": ["educat"]                # Features for integer encoding
     # }
+    feature_config = {
+        "numerical" : ["age", "cig_years", "pack_years", "ssmokea_f", "lung_fh_cnt", "weight_f"],
+        "categorical": ["sex", "race7"],
+        "ordinal": ["educat"],
+    }
     # feature_config = {
     #     "numerical" : ["age"]
     # }
@@ -155,12 +155,26 @@ def main(args: argparse.Namespace) -> dict:
     print(f"Test AUC: {test_auc:.4f}")
 
     print("Done")
+    
     # get_dataframe(test, plco_vectorizer.feature_vectorisers.keys(), test_Y, pred_test_Y)
     # get_dataframe(test, ["age", "sex", "race7", "educat", "cig_stat", "nlst_flag"], test_Y, pred_test_Y)
-    get_dataframe(test, ["age"], test_Y, pred_test_Y)
+    # get_dataframe(test, ["age"], test_Y, pred_test_Y)
+    
+    # add_to_csv("lambda_loss.csv", args.regularization_lambda, model.CELoss(train_Y, model.predict_proba(train_X)))
 
     return results
 
+def add_to_csv(path, lamb, loss):
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    row = {"regularization_lambda": float(lamb), "train_loss": float(loss)}
+    header = ["regularization_lambda", "train_loss"]
+
+    needs_header = not os.path.exists(path) or os.path.getsize(path) == 0
+    with open(path, "a", newline="") as f:
+        w = DictWriter(f, fieldnames=header)
+        if needs_header:
+            w.writeheader()
+        w.writerow(row)
 
 def get_dataframe(X, features, y, pred):
     df = pd.DataFrame(X)
