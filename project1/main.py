@@ -126,7 +126,7 @@ def main(args: argparse.Namespace) -> dict:
     )
 
     model.fit(train_X, train_Y, val_X, val_Y)
-    model.get_loss_csv()
+    # model.get_loss_csv()
 
     print("Evaluating model")
 
