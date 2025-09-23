@@ -17,7 +17,7 @@ class Vectorizer:
         :return: function to map numerical x to a zero mean, unit std dev normalized score.
         """
         values = np.array([v for v in values if not Vectorizer.is_missing(v)]).astype(float)
-        mean, std = np.mean(values), np.std(values)
+        mean, std = np.mean(values), np.std(values, ddof=1)
 
         # raise NotImplementedError("Numerical vectorizer not implemented yet")
 
@@ -29,7 +29,6 @@ class Vectorizer:
             Hint: this fn knows mean and std from the outer scope
             """
             # Standard space: z-score = (x - mu)/sigma
-
             if Vectorizer.is_missing(x):
                 x = mean
 
@@ -140,7 +139,10 @@ class Vectorizer:
             #transformed_data.append(transformed_datapoint)
             transformed_data.append(row)
 
-        return np.array(transformed_data)
+        transformed_data = np.array(transformed_data)
+        # bias = np.ones((transformed_data.shape[0], 1))
+        # return np.hstack([bias, transformed_data])
+        return transformed_data
     
 
     def is_missing(val):

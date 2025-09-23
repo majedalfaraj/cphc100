@@ -9,6 +9,7 @@ from sklearn.metrics import roc_auc_score
 import numpy as np
 import random
 import os
+import pandas as pd
 
 def add_main_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument(
@@ -19,29 +20,29 @@ def add_main_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
     parser.add_argument(
         "--learning_rate",
-        default=1e-4,
+        default=5e-4,
         type=float,
         help="Learning rate to use for SGD",
     )
 
     parser.add_argument(
         "--regularization_lambda",
-        default=0,
-        # default=10,
+        # default=0,
+        default=0.1,
         type=float,
         help="Weight to use for L2 regularization",
     )
 
     parser.add_argument(
         "--batch_size",
-        default=64,
+        default=128,
         type=int,
         help="Batch_size to use for SGD"
     )
 
     parser.add_argument(
         "--num_epochs",
-        default=100,
+        default=500,
         type=int,
         help="number of epochs to use for training"
     )
@@ -83,19 +84,19 @@ def main(args: argparse.Namespace) -> dict:
     # Example configurations:
     # For age-only model: feature_config = {"numerical": ["age"]}
     # For full model: 
-    # feature_config = {
-    #     "numerical": ["age", "pack_years"],  # Features to normalize
-    #     "categorical": ["sex", "race7"],     # Features for one-hot encoding
-    #     "ordinal": ["educat"]                # Features for integer encoding
-    # }
-    # feature_config = {
-    #     "numerical" : ["age", "cig_years", "pack_years", "ssmokea_f", "lung_fh_cnt", "lung_num_heslide_imgs", "weight_f"],
-    #     # "categorical": ["sex"]
-    #     # "ordinal": ["educat"]
-    # }
     feature_config = {
-        "numerical" : ["age"]
+        "numerical": ["age", "pack_years"],  # Features to normalize
+        "categorical": ["sex", "race7"],     # Features for one-hot encoding
+        "ordinal": ["educat"]                # Features for integer encoding
     }
+    # feature_config = {
+    #     "numerical" : ["age", "cig_years", "pack_years", "ssmokea_f", "lung_fh_cnt", "weight_f"],
+    #     "categorical": ["sex", "race7"],
+    #     "ordinal": ["educat"],
+    # }
+    # feature_config = {
+    #     "numerical" : ["age"]
+    # }
 
     print("Initializing vectorizer and extracting features")
     # TODO: Implement a vectorizer to convert the questionnaire features into a feature vector
@@ -124,7 +125,8 @@ def main(args: argparse.Namespace) -> dict:
         verbose=True
     )
 
-    model.fit(train_X, train_Y)
+    model.fit(train_X, train_Y, val_X, val_Y)
+    model.get_loss_csv()
 
     print("Evaluating model")
 
@@ -148,13 +150,25 @@ def main(args: argparse.Namespace) -> dict:
     # Compute AUC on test set and print for submission. Note, you should not use test set to tune your model.
     # Uncomment these lines only when you're ready for final evaluation:
 
-    # pred_test_Y = model.predict_proba(test_X)
-    # test_auc = roc_auc_score(test_Y, pred_test_Y)
-    # print(f"Test AUC: {test_auc:.4f}")
+    pred_test_Y = model.predict_proba(test_X)
+    test_auc = roc_auc_score(test_Y, pred_test_Y)
+    print(f"Test AUC: {test_auc:.4f}")
 
     print("Done")
+    # get_dataframe(test, plco_vectorizer.feature_vectorisers.keys(), test_Y, pred_test_Y)
+    # get_dataframe(test, ["age", "sex", "race7", "educat", "cig_stat", "nlst_flag"], test_Y, pred_test_Y)
+    get_dataframe(test, ["age"], test_Y, pred_test_Y)
 
     return results
+
+
+def get_dataframe(X, features, y, pred):
+    df = pd.DataFrame(X)
+    df = df[features]
+    df["target"] = y
+    df["prob"] = pred
+    # print(df)
+    df.to_csv("probas.csv")
 
 if __name__ == '__main__':
     __spec__ = None
