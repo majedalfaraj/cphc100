@@ -8,6 +8,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+class SimpleLinear(nn.Module):
+    """
+    Simple Linear Model: Logistic Regression
+    """
+    def __init__(self, num_classes=9):
+        super(SimpleLinear, self).__init__()
+
+        input_size = 3 * 28 * 28
+
+        self.layer = nn.Linear(input_size, num_classes)
+        self.act = nn.Sigmoid()
+
+    def forward(self, x):
+        return self.act(self.layer(x))
+
+
 class MLPModel(nn.Module):
     """
     Simple MLP model: Flatten input then run through hidden layers.
@@ -18,24 +34,52 @@ class MLPModel(nn.Module):
         
         # PathMNIST images are 3x28x28 = 2352 features
         input_size = 3 * 28 * 28
+        l1 = 1024
+        l2 = 512
+        l3 = 256
         
-        # TODO: Add your own MLP architecture here
-    
+        self.flat = nn.Flatten()
+        self.layer1 = nn.Linear(input_size, l1)
+        self.layer2 = nn.Linear(l1, l2)
+        self.layer3 = nn.Linear(l2, l3)
+        self.layer4 = nn.Linear(l3, num_classes)
+        self.relu = nn.ReLU()
+
     def forward(self, x):
-        raise NotImplementedError("MLPModel is not implemented")
+        x = self.flat(x)
+        x = self.relu(self.layer1(x))
+        x = self.relu(self.layer2(x))
+        x = self.relu(self.layer3(x))
+        return self.layer4(x)
 
 class CNNModel(nn.Module):
     """
     Simple CNN model: TODO: Add your own architecture here
     """
+
+    def down_block(self, in_ch, out_ch, kernel_size=3, pool_size=2, padding=1):
+        return nn.Sequential(
+            nn.Conv2d(in_ch, out_ch, kernel_size, padding=padding),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(),
+            nn.MaxPool2d(pool_size)
+        )
     
     def __init__(self, num_classes=9):
         super(CNNModel, self).__init__()
         
-        # TODO: Add your own CNN architecture here
+        self.cnn = nn.Sequential(
+            self.down_block(3, 32), # 32, 14, 14
+            self.down_block(32, 64), # 64, 7, 7
+            self.down_block(64, 128), # 128, 3, 3
+        )
+        self.final = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(128 * 3 * 3, num_classes)
+        )
     
     def forward(self, x):
-        raise NotImplementedError("CNNModel is not implemented")
+        return self.final(self.cnn(x))
 
 def get_model(model_name, num_classes=9):
     """Get model by name."""
