@@ -18,12 +18,26 @@ class MLPSegmentation(nn.Module):
         super(MLPSegmentation, self).__init__()
         
         # PathMNIST images are 3x28x28 = 2352 input features
+        input_size = in_channels*28*28
         # Output should be 1x28x28 = 784 features
+        self.out_channels = out_channels
+        output_size = out_channels*28*28
         
         # TODO: Add your own MLP architecture here
+        self.flat = nn.Flatten()
+        self.layer1 = nn.Linear(input_size, 2000)
+        self.layer2 = nn.Linear(2000, 1500)
+        self.layer3 = nn.Linear(1500, 1000)
+        self.layer4 = nn.Linear(1000, output_size)
+        self.relu = nn.ReLU()
     
     def forward(self, x):
-        raise NotImplementedError("MLPSegmentation is not implemented")
+        x = self.flat(x)
+        x = self.relu(self.layer1(x))
+        x = self.relu(self.layer2(x))
+        x = self.relu(self.layer3(x))
+        x = self.layer4(x)
+        return x.reshape(-1, self.out_channels, 28, 28)
 
 class TinyUNet(nn.Module):
     """
@@ -36,6 +50,9 @@ class TinyUNet(nn.Module):
         
         # Encoder (contracting path)
         # TODO: Add your own encoder architecture here
+        self.encoder = nn.Sequential(
+            
+        )
     
     def forward(self, x):
         raise NotImplementedError("TinyUNet is not implemented")
@@ -103,9 +120,10 @@ class DiceLoss(nn.Module):
         self.smooth = smooth
     
     def forward(self, pred, target):
-        #TODO: Compute the DICE loss
-        loss = 0 # TODO: Compute the DICE loss
-        return loss 
+        overlap = (pred * target).sum(dim=(1, 2, 3))
+        total = (pred.sum(dim=(1,2,3)) + target.sum(dim=(1,2,3)))
+        loss = 1 - (2*overlap + self.smooth)/(total + self.smooth)
+        return loss.mean()
 
 class CombinedLoss(nn.Module):
     """
@@ -114,8 +132,8 @@ class CombinedLoss(nn.Module):
     
     def __init__(self, bce_weight=0.5, dice_weight=0.5):
         super(CombinedLoss, self).__init__()
-        self.bce_loss = None # TODO: Initialize the BCE loss
-        self.dice_loss = None # TODO: Initialize the DICE loss
+        self.bce_loss = nn.BCELoss() # TODO: Initialize the BCE loss
+        self.dice_loss = DiceLoss() # TODO: Initialize the DICE loss
     
     def forward(self, pred, target):
         bce = self.bce_loss(pred, target)

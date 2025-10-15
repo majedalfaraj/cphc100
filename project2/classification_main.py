@@ -3,7 +3,7 @@ Main script for PathMNIST classification (Part 1).
 Students should implement the TODO sections to achieve >99% accuracy.
 """
 
-import sys
+import sys, json
 import os
 
 from classification_dataset import create_pathmnist_dataloaders
@@ -16,7 +16,7 @@ def main(args):
     # Load data
     print("Loading PathMNIST dataset...")
     train_loader, val_loader, num_classes = create_pathmnist_dataloaders(
-        batch_size=32,
+        batch_size=args.batch_size,
         num_workers=0,
         data_root='./data'
     )
@@ -35,7 +35,7 @@ def main(args):
             epochs=args.num_epochs,
             learning_rate=args.learning_rate,
             weight_decay=args.weight_decay,
-            max_steps_per_epoch=100  # Fast exploration mode. #TODO: Change for your full runs
+            max_steps_per_epoch=args.max_steps_per_epoch  # Fast exploration mode. #TODO: Change for your full runs
         )
         
         print("Training completed successfully!")
@@ -44,6 +44,18 @@ def main(args):
         if history['val_acc']:
             best_val_acc = max(history['val_acc'])
             print(f"Best validation accuracy: {best_val_acc:.4f}")
+            
+            results = {"best_val_accuracy": best_val_acc}
+
+            print(json.dumps({
+                "best_val_accuracy": best_val_acc,
+                "model_name": args.model_name,
+                "learning_rate": args.learning_rate,
+                "weight_decay": args.weight_decay,
+                "batch_size": args.batch_size,
+                "num_epochs": args.num_epochs,
+                "max_steps_per_epoch": args.max_steps_per_epoch
+            }))
         
     except NotImplementedError as e:
         print(f"❌ Training failed: {e}")
@@ -63,6 +75,12 @@ if __name__ == "__main__":
                        help='Number of epochs to train')
     parser.add_argument('--weight_decay', type=float, default=0.0,
                        help='Weight decay for regularization')
+    parser.add_argument('--batch_size', type=int, default=32,
+                    help='Batch size for training')
+    parser.add_argument('--results_path', type=str, default=None,
+                    help='Path to save experiment results (used by dispatcher)')
+    parser.add_argument('--max_steps_per_epoch', type=int, default=100,
+                    help='Maximum number of steps (batches) per epoch for faster exploration')
     args = parser.parse_args()
     
     main(args) 
