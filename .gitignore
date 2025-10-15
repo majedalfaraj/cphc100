@@ -1,6 +1,6 @@
 # Log files
 project2/lightning_logs/
-project1/logs/
+project1/
 project2/logs/
 project2/wandb/
 project2/cornerstone
