@@ -23,8 +23,9 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
     Returns:
         dict: Training history with losses and accuracies
     """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
+    print(device)
     
     # Setup optimizer and loss function
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -56,7 +57,6 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
         # Print progress
         print(f"  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}")
         print(f"  Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
-        
 
     return history
 

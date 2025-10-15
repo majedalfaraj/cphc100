@@ -57,11 +57,14 @@ class CNNModel(nn.Module):
     Simple CNN model: TODO: Add your own architecture here
     """
 
-    def down_block(self, in_ch, out_ch, kernel_size=3, pool_size=2, padding=1):
+    def down_block(self, ch, kernel_size=3, pool_size=2, padding=1):
         return nn.Sequential(
-            nn.Conv2d(in_ch, out_ch, kernel_size, padding=padding),
-            nn.BatchNorm2d(out_ch),
-            nn.ReLU(),
+            nn.Conv2d(ch[0], ch[1], kernel_size, padding=padding),
+            nn.BatchNorm2d(ch[1]),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(ch[1], ch[2], kernel_size, padding=padding),
+            nn.BatchNorm2d(ch[2]),
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(pool_size)
         )
     
@@ -69,13 +72,13 @@ class CNNModel(nn.Module):
         super(CNNModel, self).__init__()
         
         self.cnn = nn.Sequential(
-            self.down_block(3, 32), # 32, 14, 14
-            self.down_block(32, 64), # 64, 7, 7
-            self.down_block(64, 128), # 128, 3, 3
+            self.down_block([3, 8, 16]), # 16, 14, 14
+            self.down_block([16, 32, 64]), # 64, 7, 7
+            self.down_block([64, 128, 256]), # 256, 3, 3
         )
         self.final = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(128 * 3 * 3, num_classes)
+            nn.Linear(256 * 3 * 3, num_classes)
         )
     
     def forward(self, x):

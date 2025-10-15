@@ -35,7 +35,7 @@ def main(args):
             epochs=args.num_epochs,
             learning_rate=args.learning_rate,
             weight_decay=args.weight_decay,
-            max_steps_per_epoch=args.max_steps_per_epoch  # Fast exploration mode. #TODO: Change for your full runs
+            max_steps_per_epoch=args.max_steps_per_epoch #TODO: Change for your full runs
         )
         
         print("Training completed successfully!")
@@ -47,15 +47,13 @@ def main(args):
             
             results = {"best_val_accuracy": best_val_acc}
 
-            print(json.dumps({
-                "best_val_accuracy": best_val_acc,
-                "model_name": args.model_name,
-                "learning_rate": args.learning_rate,
-                "weight_decay": args.weight_decay,
-                "batch_size": args.batch_size,
-                "num_epochs": args.num_epochs,
-                "max_steps_per_epoch": args.max_steps_per_epoch
-            }))
+            if hasattr(args, "results_path"):
+                os.makedirs(os.path.dirname(args.results_path), exist_ok=True)
+                with open(args.results_path, "w") as f:
+                    json.dump(results, f)
+                print(f"Saved validation accuracy to {args.results_path}")
+            else:
+                print("No results_path provided; skipping JSON save.")
         
     except NotImplementedError as e:
         print(f"❌ Training failed: {e}")

@@ -130,22 +130,16 @@ def launch_experiment(args: argparse.Namespace, experiment_config: dict, problem
         command.append(f"--{k}={v}")
 
     try:
-        # ✅ Run the experiment and capture its stdout
-        result = subprocess.run(command, capture_output=True, text=True)
+        # Run the experiment
+        subprocess.run(command, check=True)
 
-        metrics = {}
-        stdout_lines = result.stdout.strip().splitlines()
-
-        # Look for the last valid JSON line in stdout
-        for line in reversed(stdout_lines):
-            try:
-                metrics = json.loads(line)
-                break
-            except json.JSONDecodeError:
-                continue
-
-        if not metrics:
-            print(f"[WARN] No valid JSON metrics found for {experiment_config}")
+        # Read results.json and return a single dict with all params + metrics
+        if os.path.exists(results_path):
+            with open(results_path, "r") as f:
+                metrics = json.load(f)
+        else:
+            print(f"[WARN] No results file found for {exp_name}")
+            metrics = {}
 
         return {**experiment_config, **metrics}
     
