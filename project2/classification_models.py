@@ -65,20 +65,22 @@ class CNNModel(nn.Module):
             nn.Conv2d(ch[1], ch[2], kernel_size, padding=padding),
             nn.BatchNorm2d(ch[2]),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(pool_size)
         )
     
     def __init__(self, num_classes=9):
         super(CNNModel, self).__init__()
         
         self.cnn = nn.Sequential(
-            self.down_block([3, 8, 16]), # 16, 14, 14
-            self.down_block([16, 32, 64]), # 64, 7, 7
-            self.down_block([64, 128, 256]), # 256, 3, 3
+            self.down_block([3, 32, 64]), # 64, 14, 14
+            nn.MaxPool2d(2),
+            self.down_block([64, 128, 256]), # 256, 7, 7
+            nn.MaxPool2d(2),
+            self.down_block([256, 256, 512]), # 512, 3, 3
         )
         self.final = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1), # 512
             nn.Flatten(),
-            nn.Linear(256 * 3 * 3, num_classes)
+            nn.Linear(512, num_classes)
         )
     
     def forward(self, x):

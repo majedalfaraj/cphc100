@@ -6,8 +6,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
+import os
 
-def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001, weight_decay=0.0, max_steps_per_epoch=100):
+def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001, weight_decay=0.0, max_steps_per_epoch=100, checkpoint_path="checkpoints/best_model.pt", resume=False):
     """
     Simple training function for PathMNIST models.
     
@@ -30,6 +31,26 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
     # Setup optimizer and loss function
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss() # TODO: Add your own loss function here
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='min', factor=0.5, patience=2, verbose=True, min_lr=1e-6
+    )
+
+    # Optional resume
+    start_epoch = 0
+    best_val_acc = 0.0
+
+    os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
+    
+    if resume and os.path.exists(checkpoint_path):
+        print(f"Resuming from checkpoint: {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+        start_epoch = checkpoint['epoch'] + 1
+        best_val_acc = checkpoint['best_val_acc']
+        print(f"Resumed from epoch {start_epoch} with best val acc {best_val_acc:.4f}")
+
     
     # Track training history
     history = {
@@ -39,7 +60,7 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
         'val_acc': []
     }
     
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         print(f"Epoch {epoch+1}/{epochs}")
         
         # Training phase
@@ -47,6 +68,8 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
         
         # Validation phase  
         val_loss, val_acc = validate_epoch(model, val_loader, criterion, device)
+
+        scheduler.step(val_loss)
         
         # Save history
         history['train_loss'].append(train_loss)
@@ -57,6 +80,26 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
         # Print progress
         print(f"  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}")
         print(f"  Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
+
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'scheduler_state_dict': scheduler.state_dict(),
+            'best_val_acc': best_val_acc
+        }, os.path.join(os.path.dirname(checkpoint_path), "last_model.pt"))
+
+        # Save "best" checkpoint if improved
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict(),
+                'best_val_acc': best_val_acc
+            }, checkpoint_path)
+            print(f"✅ Saved new best model (val_acc={best_val_acc:.4f})")
 
     return history
 

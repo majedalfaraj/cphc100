@@ -1,8 +1,8 @@
 {
-    "model_name": ["cnn", "mlp"],
-    "learning_rate": [0.001, 0.0005],
-    "weight_decay": [0.0, 0.001, 0.0001],
+    "model_name": ["cnn"],
+    "learning_rate": [0.001],
+    "weight_decay": [1e-4],
     "batch_size": [32],
-    "num_epochs": [1],
-    "max_steps_per_epoch": [100]
+    "num_epochs": [5],
+    "max_steps_per_epoch": [10000]
 }

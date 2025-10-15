@@ -25,6 +25,11 @@ def main(args):
     model = get_model(args.model_name, num_classes=num_classes)
     
     print(f"Model parameters: {count_parameters(model):,}")
+
+    # Define checkpoint path (unique per run)
+    checkpoint_dir = f"./checkpoints/{args.model_name}_lr{args.learning_rate}_wd{args.weight_decay}_bs{args.batch_size}"
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    checkpoint_path = os.path.join(checkpoint_dir, "best_model.pt")
     
     print(f"\nTraining {args.model_name} model...")
     try:
@@ -35,7 +40,9 @@ def main(args):
             epochs=args.num_epochs,
             learning_rate=args.learning_rate,
             weight_decay=args.weight_decay,
-            max_steps_per_epoch=args.max_steps_per_epoch #TODO: Change for your full runs
+            max_steps_per_epoch=args.max_steps_per_epoch, #TODO: Change for your full runs
+            checkpoint_path=checkpoint_path,
+            resume=args.resume,
         )
         
         print("Training completed successfully!")
@@ -79,6 +86,8 @@ if __name__ == "__main__":
                     help='Path to save experiment results (used by dispatcher)')
     parser.add_argument('--max_steps_per_epoch', type=int, default=100,
                     help='Maximum number of steps (batches) per epoch for faster exploration')
+    parser.add_argument('--resume', action='store_true',
+                    help='Resume training from last checkpoint if available')
     args = parser.parse_args()
     
     main(args) 

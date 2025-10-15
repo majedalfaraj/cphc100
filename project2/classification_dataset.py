@@ -28,13 +28,22 @@ def create_pathmnist_dataloaders(batch_size=32, num_workers=0, data_root='./data
         transforms.Normalize(mean=[0.5], std=[0.5])  # Normalize to [-1, 1]
         #TODO: Hint, you may want to add "Data Augmentation" here to improve performance.
     ])
+
+    train_transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.RandomRotation(degrees=15),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5], std=[0.5]),  # Normalize to [-1, 1]
+    ])
     
     # Create datasets (train / val only)
     train_dataset = PathMNIST(
         split='train',
         download=True,
         root=data_root,
-        transform=transform
+        transform=train_transform
     )
     
     val_dataset = PathMNIST(
@@ -52,7 +61,7 @@ def create_pathmnist_dataloaders(batch_size=32, num_workers=0, data_root='./data
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers
+        num_workers=num_workers,
     )
     
     val_loader = DataLoader(
