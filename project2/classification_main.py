@@ -86,8 +86,8 @@ if __name__ == "__main__":
                     help='Path to save experiment results (used by dispatcher)')
     parser.add_argument('--max_steps_per_epoch', type=int, default=100,
                     help='Maximum number of steps (batches) per epoch for faster exploration')
-    parser.add_argument('--resume', action='store_true',
-                    help='Resume training from last checkpoint if available')
+    parser.add_argument('--resume', type=bool, default=False,
+                    help='Resume training from checkpoint (True/False)')
     args = parser.parse_args()
     
     main(args) 
