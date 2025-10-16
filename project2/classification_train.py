@@ -32,7 +32,7 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss() # TODO: Add your own loss function here
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.5, patience=2, verbose=True, min_lr=1e-6
+        optimizer, mode='min', factor=0.3, patience=1, threshold=1e-4, verbose=True, min_lr=1e-7
     )
 
     # Optional resume
@@ -40,7 +40,7 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
     best_val_acc = 0.0
 
     os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
-    
+
     if resume and os.path.exists(checkpoint_path):
         print(f"Resuming from checkpoint: {checkpoint_path}")
         checkpoint = torch.load(checkpoint_path, map_location=device)
@@ -49,6 +49,11 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
         scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
         start_epoch = checkpoint['epoch'] + 1
         best_val_acc = checkpoint['best_val_acc']
+        
+        for param_group in optimizer.param_groups:
+            if param_group["lr"] > 1e-4:
+                param_group["lr"] = 1e-4
+                
         print(f"Resumed from epoch {start_epoch} with best val acc {best_val_acc:.4f}")
 
     

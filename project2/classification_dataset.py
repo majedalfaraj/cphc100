@@ -33,7 +33,9 @@ def create_pathmnist_dataloaders(batch_size=32, num_workers=0, data_root='./data
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomVerticalFlip(p=0.5),
         transforms.RandomRotation(degrees=15),
+        transforms.RandomAffine(degrees=5, translate=(0.05, 0.05), scale=(0.95, 1.05), shear=5),
         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+        transforms.RandomApply([transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 0.7))], p=0.3),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5], std=[0.5]),  # Normalize to [-1, 1]
     ])
