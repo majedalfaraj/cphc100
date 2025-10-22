@@ -64,7 +64,9 @@ def main(args):
         epochs=args.num_epochs,
         learning_rate=args.learning_rate,
         weight_decay=args.weight_decay,
-        max_steps_per_epoch=100  # Fast exploration mode
+        max_steps_per_epoch=1000,  # Fast exploration mode
+        checkpoint_path="checkpoints_seg/best_model.pt",
+        resume=None
     )
     
     # Evaluate model on validation set
@@ -109,6 +111,7 @@ if __name__ == "__main__":
         split='train',
         add_boxes=True
     )
+    
     visualize_box_samples(dataset, num_samples=6, save_path='visualizations/box_samples.png')
     print("Visualization complete!")
     

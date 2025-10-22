@@ -3,13 +3,13 @@ Training utilities for segmentation models.
 Handles U-Net training for black box segmentation.
 """
 
-import torch
+import torch, os
 import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
 from segmentation_models import CombinedLoss, calculate_iou
 
-def train_segmentation_model(model, train_loader, val_loader, epochs=25, learning_rate=0.001, weight_decay=0.0, max_steps_per_epoch=100):
+def train_segmentation_model(model, train_loader, val_loader, epochs=25, learning_rate=0.001, weight_decay=0.0, max_steps_per_epoch=100, checkpoint_path=None, resume=False):
     """
     Train a segmentation model.
     
@@ -25,13 +25,40 @@ def train_segmentation_model(model, train_loader, val_loader, epochs=25, learnin
     Returns:
         dict: Training history
     """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    torch._dynamo.disable()
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
     model = model.to(device)
+    print(device)
     
     # Setup optimizer and loss
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='min', factor=0.5, patience=2, verbose=True, min_lr=1e-6
+    )
 
-    criterion = None # TODO: Add your own loss function here (hint: Combined BCE + DICE loss is suggested)
+    criterion = CombinedLoss() # TODO: Add your own loss function here (hint: Combined BCE + DICE loss is suggested)
+
+    os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
+    start_epoch = 0
+    best_val_iou = 0.0
+
+    if resume and os.path.exists(checkpoint_path):
+        print(f"Resuming from checkpoint: {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+        start_epoch = checkpoint['epoch'] + 1
+        best_val_iou = checkpoint['best_val_iou']
+        for param_group in optimizer.param_groups:
+            if param_group["lr"] > 1e-4:
+                param_group["lr"] = 1e-4
+        print(f"Resumed from epoch {start_epoch}, best IoU={best_val_iou:.4f}")
     
     # Training history
     history = {
@@ -85,10 +112,10 @@ def train_segmentation_epoch(model, train_loader, optimizer, criterion, device, 
         
         # Forward pass
         #TODO: Implement the forward pass
-        predictions = 0 # TODO: Compute the predictions
+        predictions = model(images) # TODO: Compute the predictions
 
         #TODO: Compute the loss
-        loss = 0 # TODO: Compute the loss
+        loss = criterion(predictions, masks) # TODO: Compute the loss
         
         # Backward pass
         loss.backward()
@@ -124,10 +151,10 @@ def validate_segmentation_epoch(model, val_loader, criterion, device):
             
             # Forward pass
             #TODO: Implement the forward pass
-            predictions = 0 # TODO: Compute the predictions
+            predictions = model(images) # TODO: Compute the predictions
 
             #TODO: Compute the loss
-            loss = 0 # TODO: Compute the loss
+            loss = criterion(predictions, masks) # TODO: Compute the loss
             
             # Calculate IoU for this batch
             iou = calculate_iou(predictions, masks)
@@ -148,7 +175,13 @@ def evaluate_segmentation_model(model, test_loader, dataset_name="Test"):
     
     Returns detailed metrics for segmentation.
     """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    torch._dynamo.disable()
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
     model = model.to(device)
     model.eval()
     
@@ -166,7 +199,7 @@ def evaluate_segmentation_model(model, test_loader, dataset_name="Test"):
             has_boxes = batch['has_box']
             
             #TODO: Implement the forward pass
-            predictions = 0 # TODO: Compute the predictions
+            predictions = model(images) # TODO: Compute the predictions
             
             # Calculate IoU for each sample in batch (all samples have boxes)
             for i in range(images.size(0)):
@@ -204,7 +237,13 @@ def visualize_predictions(model, dataset, num_samples=6, save_path=None):
     """
     import matplotlib.pyplot as plt
     
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    torch._dynamo.disable()
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
     model = model.to(device)
     model.eval()
     

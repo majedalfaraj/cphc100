@@ -24,7 +24,14 @@ def train_model(model, train_loader, val_loader, epochs=20, learning_rate=0.001,
     Returns:
         dict: Training history with losses and accuracies
     """
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    torch._dynamo.disable()
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
     model = model.to(device)
     print(device)
     

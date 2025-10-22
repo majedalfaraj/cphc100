@@ -44,18 +44,44 @@ class TinyUNet(nn.Module):
     Tiny U-Net for segmentation of 28x28 images.
     Optimized for small images and simple segmentation tasks.
     """
+    def block(self, ch, kernel_size=3, pool_size=2, padding=1):
+        return nn.Sequential(
+            nn.Conv2d(ch[0], ch[1], kernel_size, padding=padding),
+            nn.BatchNorm2d(ch[1]),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(ch[1], ch[2], kernel_size, padding=padding),
+            nn.BatchNorm2d(ch[2]),
+            nn.ReLU(inplace=True),
+        )
     
     def __init__(self, in_channels=3, out_channels=1, base_channels=16):
         super(TinyUNet, self).__init__()
         
         # Encoder (contracting path)
         # TODO: Add your own encoder architecture here
-        self.encoder = nn.Sequential(
-            
-        )
+        self.pool = nn.MaxPool2d(2)
+        self.enc_1 = self.block([in_channels, 64, 64])
+        self.enc_2 = self.block([64, 128, 128])
+        self.bottleneck = self.block([128, 256, 256])
+        self.up2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        self.dec_2 = self.block([256, 128, 128])
+        self.up1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        self.dec_1 = self.block([128, 64, 64])
+        self.out = nn.Conv2d(64, out_channels, kernel_size=1)
+        self.sigmoid = nn.Sigmoid()
+
     
     def forward(self, x):
-        raise NotImplementedError("TinyUNet is not implemented")
+        x_1 = self.enc_1(x)
+        x_2 = self.enc_2(self.pool(x_1))
+        # x_3 = self.enc_3(self.pool(x_2))
+        # x_b = self.bottleneck(x_3)
+        x_b = self.bottleneck(self.pool(x_2))
+        # xp_3 = self.dec_3(torch.cat([self.up3(x_b), x_3], dim=1))
+        xp_2 = self.dec_2(torch.cat([self.up2(x_b), x_2], dim=1))
+        xp_1 = self.dec_1(torch.cat([self.up1(xp_2), x_1], dim=1))
+        out = self.out(xp_1)
+        return self.sigmoid(out)
         
 
 def get_segmentation_model(model_name, in_channels=3, out_channels=1):
@@ -132,6 +158,8 @@ class CombinedLoss(nn.Module):
     
     def __init__(self, bce_weight=0.5, dice_weight=0.5):
         super(CombinedLoss, self).__init__()
+        self.bce_weight = bce_weight
+        self.dice_weight = dice_weight
         self.bce_loss = nn.BCELoss() # TODO: Initialize the BCE loss
         self.dice_loss = DiceLoss() # TODO: Initialize the DICE loss
     

@@ -1,2 +1,2 @@
-resume,max_steps_per_epoch,num_epochs,batch_size,weight_decay,learning_rate,model_name,best_val_accuracy
-True,10000,60,32,0.0001,0.001,cnn,0.9918032786885246
+resume,max_steps_per_epoch,num_epochs,batch_size,weight_decay,learning_rate,model_name,train_auc,val_auc
+True,10000,60,32,0.0001,0.001,cnn,,
