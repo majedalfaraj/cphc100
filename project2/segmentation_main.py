@@ -86,7 +86,7 @@ def main(args):
         save_path=f'visualizations/{args.model_name}_predictions.png'
     )
     
-    return {'model': model, 'val_results': val_results}
+    return {'model': model, 'val_results': val_results, 'history': history}
 
 
 if __name__ == "__main__":
@@ -116,3 +116,18 @@ if __name__ == "__main__":
     print("Visualization complete!")
     
     results = main(args)
+
+    os.makedirs("results_seg", exist_ok=True)
+    import json
+
+    if 'history' in results:
+        history_path = f"results_seg/{args.model_name}_history.json"
+        with open(history_path, "w") as f:
+            json.dump(results['history'], f, indent=4)
+        print(f"Saved training history to {history_path}")
+
+    if 'val_results' in results:
+        val_path = f"results_seg/{args.model_name}_val_results.json"
+        with open(val_path, "w") as f:
+            json.dump(results['val_results'], f, indent=4)
+        print(f"Saved validation results to {val_path}")
