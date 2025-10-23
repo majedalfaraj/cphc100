@@ -64,7 +64,7 @@ def main(args):
         epochs=args.num_epochs,
         learning_rate=args.learning_rate,
         weight_decay=args.weight_decay,
-        max_steps_per_epoch=1000,  # Fast exploration mode
+        max_steps_per_epoch=args.max_steps,  # Fast exploration mode
         checkpoint_path="checkpoints_seg/best_model.pt",
         resume=None
     )
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='PathMNIST Black Box Segmentation')
     parser.add_argument('--model_name', type=str, default='unet',
-                       choices=['mlp', 'unet'], #TODO: add your models names here
+                       choices=['mlp', 'unet', 'cnn'], #TODO: add your models names here
                        help='Segmentation model to train')
     parser.add_argument('--learning_rate', type=float, default=0.001,
                        help='Learning rate for training')
@@ -102,6 +102,8 @@ if __name__ == "__main__":
                        help='Number of epochs to train')
     parser.add_argument('--weight_decay', type=float, default=0.0,
                        help='Weight decay for regularization')
+    parser.add_argument('--max_steps', type=int, default=100,
+                       help='Max steps per epoch')
     args = parser.parse_args()
     
     

@@ -38,6 +38,48 @@ class MLPSegmentation(nn.Module):
         x = self.relu(self.layer3(x))
         x = self.layer4(x)
         return x.reshape(-1, self.out_channels, 28, 28)
+    
+
+class SimpleCNN(nn.Module):
+    """
+    SimpleCNN for segmentation of 28x28 images.
+    Optimized for small images and simple segmentation tasks.
+    """
+    def block(self, ch, kernel_size=3, pool_size=2, padding=1):
+        return nn.Sequential(
+            nn.Conv2d(ch[0], ch[1], kernel_size, padding=padding),
+            nn.BatchNorm2d(ch[1]),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(ch[1], ch[2], kernel_size, padding=padding),
+            nn.BatchNorm2d(ch[2]),
+            nn.ReLU(inplace=True),
+        )
+    
+    def __init__(self, in_channels=3, out_channels=1, base_channels=16):
+        super(SimpleCNN, self).__init__()
+        
+        # Encoder (contracting path)
+        # TODO: Add your own encoder architecture here
+        self.pool = nn.MaxPool2d(2)
+        self.enc_1 = self.block([in_channels, 64, 64])
+        self.enc_2 = self.block([64, 128, 128])
+        self.bottleneck = self.block([128, 256, 256])
+        self.up2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        self.dec_2 = self.block([128, 128, 128])
+        self.up1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        self.dec_1 = self.block([64, 64, 64])
+        self.out = nn.Conv2d(64, out_channels, kernel_size=1)
+        self.sigmoid = nn.Sigmoid()
+
+    
+    def forward(self, x):
+        x = self.enc_1(x)
+        x = self.enc_2(self.pool(x))
+        x = self.bottleneck(self.pool(x))
+        x = self.dec_2(self.up2(x))
+        x = self.dec_1(self.up1(x))
+        out = self.out(x)
+        return self.sigmoid(out)
 
 class TinyUNet(nn.Module):
     """
@@ -90,6 +132,8 @@ def get_segmentation_model(model_name, in_channels=3, out_channels=1):
         return MLPSegmentation(in_channels=in_channels, out_channels=out_channels)
     elif model_name == 'unet':
         return TinyUNet(in_channels=in_channels, out_channels=out_channels)
+    elif model_name == 'cnn':
+        return SimpleCNN(in_channels=in_channels, out_channels=out_channels)
     else:
         raise ValueError("Unknown segmentation model: {}".format(model_name))
 

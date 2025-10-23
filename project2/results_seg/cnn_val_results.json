@@ -1,6 +1,6 @@
 {
-    "mean_iou": 0.9998823138402968,
-    "std_iou": 0.00351433986398886,
+    "mean_iou": 0.9695289667759251,
+    "std_iou": 0.09271087737523119,
     "samples_with_boxes": 10004,
     "total_samples": 10004,
     "box_ratio": 1.0,
